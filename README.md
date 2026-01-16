@@ -55,6 +55,3 @@ Get your API key from: https://console.anthropic.com/settings/keys
 
 MIT — Feel free to use, modify, and distribute.
 
----
-
-*Built with Claude AI*
