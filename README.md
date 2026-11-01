@@ -55,3 +55,22 @@ Get your API key from: https://console.anthropic.com/settings/keys
 
 MIT — Feel free to use, modify, and distribute.
 
+
+## Query History
+
+New in this update: the AI Chat column now shows a **Query history
+(last 10)** panel above the question input.
+
+- Every question you ask the AI assistant is saved, newest first,
+  deduplicated, and capped at 10 entries.
+- Click any history entry to put it back in the input and re-run it.
+- Click **Clear** to delete the whole history.
+- Storage: history is kept in the browser's `localStorage` under
+  `sql_agent_query_history`, following the same pattern the app
+  already uses for per-user AI answers. It is not sent to the server
+  and it is not stored in the server's SQLite community database;
+  community questions and answers are the ones stored in SQLite.
+- Requirements: a Claude API key is still required for AI answers,
+  set as `ANTHROPIC_API_KEY` in a local `.env` file (see above).
+  History itself works without a key, but re-running an entry still
+  needs the key and a running backend.
