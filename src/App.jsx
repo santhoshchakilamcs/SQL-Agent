@@ -184,6 +184,23 @@ CREATE TABLE products (
   
   const [question, setQuestion] = useState('');
   const [conversation, setConversation] = useState([]);
+  // Query history: last 10 AI-chat questions, re-runnable.
+  // Stored in the browser (localStorage), like the existing per-user
+  // AI answers. Community questions stay in the server SQLite DB;
+  // this history is separate and is not sent to the server.
+  const [queryHistory, setQueryHistory] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('sql_agent_query_history') || '[]'); }
+    catch { return []; }
+  });
+  const saveToQueryHistory = (q) => {
+    const text = q.trim();
+    if (!text) return;
+    setQueryHistory((prev) => {
+      const next = [text, ...prev.filter((x) => x !== text)].slice(0, 10);
+      try { localStorage.setItem('sql_agent_query_history', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
   const [isLoading, setIsLoading] = useState(false);
   const [communityQuestions, setCommunityQuestions] = useState([]);
   const [newCommunityQuestion, setNewCommunityQuestion] = useState('');
@@ -264,6 +281,7 @@ CREATE TABLE products (
 
   const askAI = async (q) => {
     if (!q.trim() || !schema.trim()) return;
+    saveToQueryHistory(q);
     
     const newQuestion = { role: 'user', content: q };
     setConversation(prev => [...prev, newQuestion]);
@@ -841,6 +859,44 @@ CREATE TABLE products (
               </div>
             )}
           </div>
+
+          {queryHistory.length > 0 && (
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: '#94a3b8' }}>Query history (last 10)</span>
+                <button
+                  onClick={() => { setQueryHistory([]); try { localStorage.removeItem('sql_agent_query_history'); } catch {} }}
+                  style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '12px' }}
+                >
+                  Clear
+                </button>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {queryHistory.map((h, i) => (
+                  <button
+                    key={i}
+                    onClick={() => { setQuestion(h); askAI(h); }}
+                    title={h}
+                    style={{
+                      background: 'rgba(167, 139, 250, 0.1)',
+                      border: '1px solid rgba(167, 139, 250, 0.2)',
+                      borderRadius: '8px',
+                      padding: '6px 10px',
+                      color: '#e2e8f0',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      maxWidth: '100%',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {h}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div style={{
             display: 'flex',
